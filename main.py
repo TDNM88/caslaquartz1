@@ -19,6 +19,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
+# Initialize FastAPI app
+app = FastAPI(
+    title="CaslaQuartz Image Generation API",
+    description="API for generating quartz marble product images",
+    version="1.0.0"
+)
+
 # Phục vụ frontend
 app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
 
@@ -38,17 +45,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger("casla-quartz-api")
 
-# Initialize FastAPI app
-app = FastAPI(
-    title="CaslaQuartz Image Generation API",
-    description="API for generating quartz marble product images",
-    version="1.0.0"
-)
+
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Modify in production
+    allow_origins=["https://your-vercel-app.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
