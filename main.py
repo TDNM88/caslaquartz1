@@ -158,11 +158,11 @@ def parse_size(size_choice: str, custom_size: Optional[str]) -> tuple:
             width, height = map(int, custom_size.split("x"))
         else:
             width, height = map(int, size_choice.split("x"))
-        
+
         # Validate dimensions
         if width <= 0 or height <= 0:
             raise ValueError("Width and height must be positive integers")
-        
+
         return width, height
     except Exception as e:
         raise ValueError(f"Invalid size format: {str(e)}")
