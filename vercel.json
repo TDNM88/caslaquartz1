@@ -30,14 +30,5 @@
       "src": "/(.*)",
       "dest": "frontend/build/index.html"
     }
-  ],
-  "env": {
-    "PYTHONUNBUFFERED": "1"
-  },
-
-  "build": {
-    "env": {
-      "PYTHON_VERSION": "3.9"
-    }
-  }
+  ]
 }
