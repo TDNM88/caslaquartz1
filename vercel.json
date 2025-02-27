@@ -6,17 +6,21 @@
       "use": "@vercel/python"
     },
     {
+      "src": "product_images/**",
+      "use": "@vercel/static"
+    },
+    {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build"
+        "distDir": "frontend/build"
       }
     }
   ],
   "routes": [
     {
-      "src": "/static/(.*)",
-      "dest": "/static/$1"
+      "src": "/product_images/(.*)",
+      "dest": "/product_images/$1"
     },
     {
       "src": "/api/(.*)",
@@ -26,5 +30,8 @@
       "src": "/(.*)",
       "dest": "frontend/build/index.html"
     }
-  ]
+  ],
+  "env": {
+    "PYTHONUNBUFFERED": "1"
+  }
 }
