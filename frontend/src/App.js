@@ -3,7 +3,7 @@ import axios from 'axios';
 import Dropzone from 'react-dropzone';
 import './App.css';
 
-const API_URL = '';
+const API_URL = '/api';
 
 function App() {
   const [textPrompt, setTextPrompt] = useState('');
