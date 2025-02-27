@@ -9,6 +9,9 @@
     "react-dropzone": "^14.3.8",
     "react-scripts": "5.0.1"
   },
+  "devDependencies": {
+    "serve": "^14.2.0"
+  },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -17,6 +20,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  
   "eslintConfig": {
     "extends": "react-app"
   },

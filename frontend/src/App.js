@@ -94,6 +94,10 @@ function App() {
     setLoading(false);
   };
 
+  const LoadingSpinner = () => (
+    <div className="loading-spinner"></div>
+  );
+
   return (
     <div className="App">
        <header className="header">
@@ -150,7 +154,7 @@ function App() {
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Đang tạo...' : 'Tạo ảnh'}
+            {loading ? <LoadingSpinner /> : 'Tạo ảnh'}
           </button>
         </form>
       </div>
@@ -195,7 +199,7 @@ function App() {
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Đang xử lý...' : 'Xử lý ảnh'}
+            {loading ? <LoadingSpinner /> : 'Tạo ảnh'}
           </button>
         </form>
       </div>
