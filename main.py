@@ -14,6 +14,18 @@ from typing import List, Optional
 import logging
 from functools import lru_cache
 from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+import os
+
+# Phục vụ frontend
+app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
+
+@app.get("/{path:path}")
+async def serve_frontend(path: str):
+    frontend_path = os.path.join("frontend", "build", "index.html")
+    return FileResponse(frontend_path)
 
 # Load environment variables
 load_dotenv()
