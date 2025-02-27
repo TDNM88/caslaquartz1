@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Query, Depends
 from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import os
@@ -26,13 +27,21 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Phục vụ frontend
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Serve static files from React build
 app.mount("/static", StaticFiles(directory="frontend/build/static"), name="static")
 
 @app.get("/{path:path}")
 async def serve_frontend(path: str):
-    frontend_path = os.path.join("frontend", "build", "index.html")
-    return FileResponse(frontend_path)
+    return FileResponse("frontend/build/index.html")
 
 # Load environment variables
 load_dotenv()
@@ -45,16 +54,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger("casla-quartz-api")
 
-
-
-# Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://your-vercel-app.vercel.app"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Configuration
 SAVE_DIR = os.getenv("SAVE_DIR", "/tmp/generated_images")
