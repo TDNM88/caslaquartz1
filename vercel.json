@@ -29,8 +29,8 @@
       "dest": "app/main.py"
     },
     {
-      "src": "/(.*)",
-      "dest": "frontend/build/index.html"
+      "src": "/static/images/(.*)",
+      "dest": "/static/images/$1"
     }
   ]
 }
