@@ -3,7 +3,7 @@ import axios from 'axios';
 import Dropzone from 'react-dropzone';
 import './App.css';
 
-const API_URL = '/api'; // Backend chạy cùng domain, dùng prefix /api
+const API_URL = '/api';
 
 function App() {
   const [textPrompt, setTextPrompt] = useState('');
@@ -27,6 +27,14 @@ function App() {
     "C4221 Athena", "C4255 Calacatta Extra"
   ];
 
+  const toggleProduct = (product) => {
+    if (productCodes.includes(product)) {
+      setProductCodes(productCodes.filter(code => code !== product));
+    } else {
+      setProductCodes([...productCodes, product]);
+    }
+  };
+
   const handleText2Img = async (e) => {
     e.preventDefault();
     if (!textPrompt || productCodes.length === 0) {
@@ -34,7 +42,6 @@ function App() {
       return;
     }
     setLoading(true);
-
     try {
       const response = await axios.post(
         `${API_URL}/text2img`,
@@ -45,11 +52,10 @@ function App() {
           product_codes: productCodes
         },
         {
-          headers: { 'Authorization': 'Bearer YOUR_API_KEY_HERE' }, // Thay bằng API key thực tế
+          headers: { 'Authorization': 'Bearer YOUR_API_KEY_HERE' },
           responseType: 'blob'
         }
       );
-
       const imageUrl = URL.createObjectURL(response.data);
       setGeneratedImage(imageUrl);
     } catch (error) {
@@ -64,7 +70,6 @@ function App() {
       alert('Vui lòng tải ảnh lên, nhập vị trí và chọn một sản phẩm.');
       return;
     }
-
     setLoading(true);
     const formData = new FormData();
     formData.append('image', imageFile);
@@ -72,20 +77,18 @@ function App() {
     formData.append('size_choice', sizeChoice);
     formData.append('custom_size', sizeChoice === 'Custom size' ? customSize : null);
     formData.append('product_codes', JSON.stringify(productCodes));
-
     try {
       const response = await axios.post(
         `${API_URL}/img2img`,
         formData,
         {
           headers: {
-            'Authorization': 'Bearer YOUR_API_KEY_HERE', // Thay bằng API key thực tế
+            'Authorization': 'Bearer YOUR_API_KEY_HERE',
             'Content-Type': 'multipart/form-data'
           },
           responseType: 'blob'
         }
       );
-
       const imageUrl = URL.createObjectURL(response.data);
       setGeneratedImage(imageUrl);
     } catch (error) {
@@ -100,12 +103,13 @@ function App() {
 
   return (
     <div className="App">
-       <header className="header">
+      <header className="header">
         <div className="logo-container">
           <img src="/static/images/logo.png" alt="Casla Quartz Logo" className="logo-img" />
           <h1>Đưa CaslaQuartz vào công trình của bạn</h1>
         </div>
       </header>
+
       {/* Text to Image Form */}
       <div className="section">
         <h2>Tạo ảnh từ văn bản</h2>
@@ -142,15 +146,18 @@ function App() {
 
           <div>
             <label>Chọn sản phẩm:</label>
-            <select
-              multiple
-              value={productCodes}
-              onChange={(e) => setProductCodes(Array.from(e.target.selectedOptions, option => option.value))}
-            >
+            <div className="product-buttons">
               {productOptions.map(product => (
-                <option key={product} value={product}>{product}</option>
+                <button
+                  key={product}
+                  type="button"
+                  className={`product-button ${productCodes.includes(product) ? 'selected' : ''}`}
+                  onClick={() => toggleProduct(product)}
+                >
+                  {product}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
           <button type="submit" disabled={loading}>
@@ -187,19 +194,22 @@ function App() {
 
           <div>
             <label>Chọn sản phẩm:</label>
-            <select
-              value={productCodes[0] || ''}
-              onChange={(e) => setProductCodes([e.target.value])}
-            >
-              <option value="">Chọn một sản phẩm</option>
+            <div className="product-buttons">
               {productOptions.map(product => (
-                <option key={product} value={product}>{product}</option>
+                <button
+                  key={product}
+                  type="button"
+                  className={`product-button ${productCodes.includes(product) ? 'selected' : ''}`}
+                  onClick={() => setProductCodes([product])}
+                >
+                  {product}
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
           <button type="submit" disabled={loading}>
-            {loading ? <LoadingSpinner /> : 'Tạo ảnh'}
+            {loading ? <LoadingSpinner /> : 'Xử lý ảnh'}
           </button>
         </form>
       </div>
@@ -208,7 +218,7 @@ function App() {
       {generatedImage && (
         <div className="section">
           <h2>Kết quả:</h2>
-          <img src={generatedImage} alt="Generated" style={{maxWidth: '100%'}} />
+          <img src={generatedImage} alt="Generated" />
           <a href={generatedImage} download="generated_image.png">Tải ảnh xuống</a>
         </div>
       )}
