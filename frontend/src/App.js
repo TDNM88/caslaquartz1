@@ -94,6 +94,11 @@ function App() {
     setLoading(false);
   };
 
+  // Thêm loading spinner
+  const LoadingSpinner = () => (
+    <div className="loading-spinner"></div>
+  );
+
   return (
     <div className="App">
        <header className="header">
@@ -206,127 +211,6 @@ function App() {
           <h2>Kết quả:</h2>
           <img src={generatedImage} alt="Generated" style={{maxWidth: '100%'}} />
           <a href={generatedImage} download="generated_image.png">Tải ảnh xuống</a>
-        </div>
-      )}
-    </div>
-  );
-
-  // Thêm loading spinner
-  const LoadingSpinner = () => (
-    <div className="loading-spinner"></div>
-  );
-
-  return (
-    <div className="App">
-      <h1>Tạo Ảnh Sản Phẩm Casla Quartz</h1>
-      
-      {/* Text to Image Form */}
-      <div className="section">
-        <h2>Tạo ảnh từ văn bản</h2>
-        <form onSubmit={handleText2Img}>
-          <div className="form-group">
-            <label>Mô tả (Prompt):</label>
-            <input
-              type="text"
-              value={textPrompt}
-              onChange={(e) => setTextPrompt(e.target.value)}
-              placeholder="Nhập mô tả bằng tiếng Việt"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Kích thước:</label>
-            <select
-              value={sizeChoice}
-              onChange={(e) => setSizeChoice(e.target.value)}
-            >
-              <option value="1024x768">1024x768</option>
-              <option value="Custom size">Tùy chỉnh</option>
-            </select>
-            {sizeChoice === 'Custom size' && (
-              <input
-                type="text"
-                value={customSize}
-                onChange={(e) => setCustomSize(e.target.value)}
-                placeholder="Ví dụ: 1280x720"
-              />
-            )}
-          </div>
-
-          <div className="form-group">
-            <label>Chọn sản phẩm:</label>
-            <select
-              multiple
-              value={productCodes}
-              onChange={(e) => setProductCodes(Array.from(e.target.selectedOptions, option => option.value))}
-              className="product-select"
-            >
-              {productOptions.map(product => (
-                <option key={product} value={product}>{product}</option>
-              ))}
-            </select>
-          </div>
-
-          <button type="submit" disabled={loading}>
-            {loading ? <LoadingSpinner /> : 'Tạo ảnh'}
-          </button>
-        </form>
-      </div>
-
-      {/* Image to Image Form */}
-      <div className="section">
-        <h2>Chuyển đổi ảnh</h2>
-        <form onSubmit={handleImg2Img}>
-          <Dropzone onDrop={acceptedFiles => setImageFile(acceptedFiles[0])}>
-            {({getRootProps, getInputProps}) => (
-              <section>
-                <div {...getRootProps()} className="dropzone">
-                  <input {...getInputProps()} />
-                  <p>Kéo thả ảnh vào đây hoặc nhấp để chọn ảnh</p>
-                </div>
-              </section>
-            )}
-          </Dropzone>
-
-          <div className="form-group">
-            <label>Vị trí áp dụng texture:</label>
-            <input
-              type="text"
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-              placeholder="Ví dụ: countertop"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Chọn sản phẩm:</label>
-            <select
-              value={productCodes[0] || ''}
-              onChange={(e) => setProductCodes([e.target.value])}
-            >
-              <option value="">Chọn một sản phẩm</option>
-              {productOptions.map(product => (
-                <option key={product} value={product}>{product}</option>
-              ))}
-            </select>
-          </div>
-
-          <button type="submit" disabled={loading}>
-            {loading ? <LoadingSpinner /> : 'Xử lý ảnh'}
-          </button>
-        </form>
-      </div>
-
-      {/* Display Generated Image */}
-      {generatedImage && (
-        <div className="section image-preview">
-          <h2>Kết quả:</h2>
-          <img src={generatedImage} alt="Generated" className="generated-image" />
-          <a href={generatedImage} download="generated_image.png" className="download-link">
-            Tải ảnh xuống
-          </a>
         </div>
       )}
     </div>
