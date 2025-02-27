@@ -94,11 +94,6 @@ function App() {
     setLoading(false);
   };
 
-  // Thêm loading spinner
-  const LoadingSpinner = () => (
-    <div className="loading-spinner"></div>
-  );
-
   return (
     <div className="App">
        <header className="header">
