@@ -3,7 +3,7 @@ import axios from 'axios';
 import Dropzone from 'react-dropzone';
 import './App.css';
 
-const API_URL = 'YOUR_VERCEL_API_URL'; // Thay bằng URL Vercel của bạn
+const API_URL = '';
 
 function App() {
   const [textPrompt, setTextPrompt] = useState('');
