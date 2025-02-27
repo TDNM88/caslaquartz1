@@ -15,10 +15,17 @@ from typing import List, Optional
 import logging
 from functools import lru_cache
 from dotenv import load_dotenv
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-import os
+
+# Load environment variables
+load_dotenv()
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler()]
+)
+logger = logging.getLogger("casla-quartz-api")
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -43,59 +50,47 @@ app.mount("/static", StaticFiles(directory="frontend/build/static"), name="stati
 async def serve_frontend(path: str):
     return FileResponse("frontend/build/index.html")
 
-# Load environment variables
-load_dotenv()
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler()]
-)
-logger = logging.getLogger("casla-quartz-api")
-
-
 # Configuration
 SAVE_DIR = os.getenv("SAVE_DIR", "/tmp/generated_images")
 API_KEY_TOKEN = os.getenv("API_KEY_TOKEN")
 URL_PRE = os.getenv("URL_PRE")
 Path(SAVE_DIR).mkdir(exist_ok=True, parents=True)
 
-# Product image mapping - should be loaded from a database or config file
+# Product image mapping
 PRODUCT_IMAGE_MAP = {
-        "C1012 Glacier White": "product_images/C1012.jpg",
-        "C1026 Polar": "product_images/C1026.jpg",
-        "C3269 Ash Grey": "product_images/C3269.jpg",
-        "C3168 Silver Wave": "product_images/C3168.jpg",
-        "C1005 Milky White": "product_images/C1005.jpg",
-        "C2103 Onyx Carrara": "product_images/C2103.jpg",
-        "C2104 Massa": "product_images/C2104.jpg",
-        "C3105 Casla Cloudy": "product_images/C3105.jpg",
-        "C3146 Casla Nova": "product_images/C3146.jpg",
-        "C2240 Marquin": "product_images/C2240.jpg",
-        "C2262 Concrete (Honed)": "product_images/C2262.jpg",
-        "C3311 Calacatta Sky": "product_images/C3311.jpg",
-        "C3346 Massimo": "product_images/C3346.jpg",
-        "C4143 Mario": "product_images/C4143.jpg",
-        "C4145 Marina": "product_images/C4145.jpg",
-        "C4202 Calacatta Gold": "product_images/C4202.jpg",
-        "C1205 Casla Everest": "product_images/C1205.jpg",
-        "C4211 Calacatta Supreme": "product_images/C4211.jpg",
-        "C4204 Calacatta Classic": "product_images/C4204.jpg",
-        "C1102 Super White": "product_images/C1102.jpg",
-        "C4246 Casla Mystery": "product_images/C4246.jpg",
-        "C4345 Oro": "product_images/C4345.jpg",
-        "C4346 Luxe": "product_images/C4346.jpg",
-        "C4342 Casla Eternal": "product_images/C4342.jpg",
-        "C4221 Athena": "product_images/C4221.jpg",
-        "C4255 Calacatta Extra": "product_images/C4255.jpg",
-    }
+    "C1012 Glacier White": "product_images/C1012.jpg",
+    "C1026 Polar": "product_images/C1026.jpg",
+    "C3269 Ash Grey": "product_images/C3269.jpg",
+    "C3168 Silver Wave": "product_images/C3168.jpg",
+    "C1005 Milky White": "product_images/C1005.jpg",
+    "C2103 Onyx Carrara": "product_images/C2103.jpg",
+    "C2104 Massa": "product_images/C2104.jpg",
+    "C3105 Casla Cloudy": "product_images/C3105.jpg",
+    "C3146 Casla Nova": "product_images/C3146.jpg",
+    "C2240 Marquin": "product_images/C2240.jpg",
+    "C2262 Concrete (Honed)": "product_images/C2262.jpg",
+    "C3311 Calacatta Sky": "product_images/C3311.jpg",
+    "C3346 Massimo": "product_images/C3346.jpg",
+    "C4143 Mario": "product_images/C4143.jpg",
+    "C4145 Marina": "product_images/C4145.jpg",
+    "C4202 Calacatta Gold": "product_images/C4202.jpg",
+    "C1205 Casla Everest": "product_images/C1205.jpg",
+    "C4211 Calacatta Supreme": "product_images/C4211.jpg",
+    "C4204 Calacatta Classic": "product_images/C4204.jpg",
+    "C1102 Super White": "product_images/C1102.jpg",
+    "C4246 Casla Mystery": "product_images/C4246.jpg",
+    "C4345 Oro": "product_images/C4345.jpg",
+    "C4346 Luxe": "product_images/C4346.jpg",
+    "C4342 Casla Eternal": "product_images/C4342.jpg",
+    "C4221 Athena": "product_images/C4221.jpg",
+    "C4255 Calacatta Extra": "product_images/C4255.jpg",
+}
 
 # Dependency for API key validation
 def verify_api_key():
     if not API_KEY_TOKEN:
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail="API key not configured. Please set the API_KEY_TOKEN environment variable."
         )
     return API_KEY_TOKEN
@@ -118,8 +113,8 @@ class ApiResponse(BaseModel):
     message: str
     data: Optional[dict] = None
 
-# Endpoints
-@app.post("/text2img", summary="Generate image from text prompt", response_class=FileResponse)
+# Endpoints with /api/ prefix
+@app.post("/api/text2img", summary="Generate image from text prompt", response_class=FileResponse)
 async def text2img(request: GenerateRequest, api_key: str = Depends(verify_api_key)):
     try:
         # Validate size
@@ -139,8 +134,8 @@ async def text2img(request: GenerateRequest, api_key: str = Depends(verify_api_k
         save_path = Path(SAVE_DIR) / f"{hashlib.md5(request.prompt.encode()).hexdigest()}.png"
         result.save(save_path)
         return FileResponse(
-            path=str(save_path), 
-            media_type="image/png", 
+            path=str(save_path),
+            media_type="image/png",
             filename="generated_image.png"
         )
 
@@ -148,7 +143,7 @@ async def text2img(request: GenerateRequest, api_key: str = Depends(verify_api_k
         logger.error(f"Error in text2img: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/img2img", summary="Generate image from input image", response_class=FileResponse)
+@app.post("/api/img2img", summary="Generate image from input image", response_class=FileResponse)
 async def img2img(
     image: UploadFile = File(...),
     request: Img2ImgRequest = Depends(),
@@ -177,8 +172,8 @@ async def img2img(
 
         # Return the generated image
         return FileResponse(
-            path=output_path, 
-            media_type="image/jpeg", 
+            path=output_path,
+            media_type="image/jpeg",
             filename="output_image.jpg"
         )
 
@@ -186,9 +181,8 @@ async def img2img(
         logger.error(f"Error in img2img: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
-# Helper functions
+# Helper functions (unchanged)
 def parse_size(size_choice: str, custom_size: Optional[str]) -> tuple:
-    """Parse and validate image size"""
     try:
         if size_choice == "Custom size":
             if not custom_size:
@@ -197,7 +191,6 @@ def parse_size(size_choice: str, custom_size: Optional[str]) -> tuple:
         else:
             width, height = map(int, size_choice.split("x"))
 
-        # Validate dimensions
         if width <= 0 or height <= 0:
             raise ValueError("Width and height must be positive integers")
 
@@ -206,19 +199,14 @@ def parse_size(size_choice: str, custom_size: Optional[str]) -> tuple:
         raise ValueError(f"Invalid size format: {str(e)}")
 
 def rewrite_prompt_with_groq(vietnamese_prompt: str, product_codes: List[str]) -> str:
-    """Enhance the prompt with product codes"""
     prompt = f"{vietnamese_prompt}, featuring {' and '.join(product_codes)} quartz marble"
     return prompt
 
 @lru_cache(maxsize=10)
 def load_product_image_map():
-    """Load product image mapping from configuration or database"""
-    # This should be implemented to load from a database or config file
-    # For now, we'll return a static mapping
     return PRODUCT_IMAGE_MAP
 
 def txt2img(prompt: str, width: int, height: int, product_codes: List[str]) -> Image.Image:
-    """Generate image from text prompt"""
     if not API_KEY_TOKEN or not URL_PRE:
         raise ValueError("API_KEY_TOKEN and URL_PRE environment variables must be set")
     
@@ -265,7 +253,6 @@ def txt2img(prompt: str, width: int, height: int, product_codes: List[str]) -> I
         job_id = response_data['job']['id']
         logger.info(f"Job created. ID: {job_id}")
         
-        # Poll for job completion
         start_time = time.time()
         timeout = 300
         
@@ -305,7 +292,6 @@ def txt2img(prompt: str, width: int, height: int, product_codes: List[str]) -> I
         raise RuntimeError(f"API request failed: {str(e)}")
 
 def upload_image_to_tensorart(image_path: str) -> str:
-    """Upload image to TensorArt and return resource ID"""
     if not API_KEY_TOKEN or not URL_PRE:
         raise ValueError("API_KEY_TOKEN and URL_PRE environment variables must be set")
         
@@ -355,7 +341,6 @@ def upload_image_to_tensorart(image_path: str) -> str:
             
         logger.info(f"Upload successful - resourceId: {resource_id}")
         
-        # Wait for resource synchronization
         time.sleep(10)
         logger.info(f"Waited 10s for resource sync: {resource_id}")
         
@@ -366,17 +351,14 @@ def upload_image_to_tensorart(image_path: str) -> str:
         return None
 
 def generate_mask(image_resource_id: str, position: str, selected_product_code: str) -> str:
-    """Generate mask and apply texture to image"""
     try:
         if not image_resource_id:
             raise ValueError("Invalid image_resource_id - original image not uploaded")
             
         logger.info(f"Using image_resource_id: {image_resource_id}")
         
-        # Wait for resource synchronization
         time.sleep(10)
         
-        # Get product texture
         product_image_map = load_product_image_map()
         short_code = selected_product_code.split()[0]
         texture_filepath = product_image_map.get(selected_product_code)
@@ -386,25 +368,20 @@ def generate_mask(image_resource_id: str, position: str, selected_product_code: 
         if not texture_filepath or not os.path.exists(texture_filepath):
             raise ValueError(f"Texture image not found for product code {short_code}")
         
-        # Upload texture
         texture_resource_id = upload_image_to_tensorart(texture_filepath)
         logger.info(f"Texture resource_id: {texture_resource_id}")
         
         if not texture_resource_id:
             raise ValueError(f"Failed to upload texture image for {short_code}")
             
-        # Wait for resource synchronization
         time.sleep(10)
         
-        # Handle position parameter
         if isinstance(position, (set, list)):
             position = position[0] if position else "default"
             
         logger.info(f"Position: {position}, type: {type(position)}")
         
-        # Define workflow parameters
         workflow_params = {
-            # Workflow parameters as in the original code
             "1": {
                 "classType": "LayerMask: SegmentAnythingUltra V3",
                 "inputs": {
@@ -423,7 +400,6 @@ def generate_mask(image_resource_id: str, position: str, selected_product_code: 
                 },
                 "properties": {"Node name for S&R": "LayerMask: SegmentAnythingUltra V3"}
             },
-            # ... other workflow parameters
             "17": {
                 "classType": "TensorArt_LoadImage",
                 "inputs": {
@@ -457,7 +433,6 @@ def generate_mask(image_resource_id: str, position: str, selected_product_code: 
             "runningNotifyUrl": ""
         }
         
-        # Run workflow
         output_path = run_workflow(payload, "full_workflow")
         return output_path
         
@@ -466,7 +441,6 @@ def generate_mask(image_resource_id: str, position: str, selected_product_code: 
         return None
 
 def run_workflow(payload: dict, workflow_name: str) -> str:
-    """Run TensorArt workflow and return output image path"""
     if not API_KEY_TOKEN or not URL_PRE:
         raise ValueError("API_KEY_TOKEN and URL_PRE environment variables must be set")
         
@@ -491,7 +465,6 @@ def run_workflow(payload: dict, workflow_name: str) -> str:
             
         logger.info(f"Workflow started with ID: {workflow_id}")
         
-        # Poll for workflow completion
         start_time = time.time()
         timeout = 300
         
@@ -510,13 +483,11 @@ def run_workflow(payload: dict, workflow_name: str) -> str:
             workflow_status = status_data.get('status')
             
             if workflow_status == 'COMPLETED':
-                # Get output image URL
                 output_url = status_data.get('outputUrl')
                 
                 if not output_url:
                     raise ValueError("No output URL in completed workflow")
                     
-                # Download output image
                 output_response = requests.get(output_url)
                 output_response.raise_for_status()
                 
@@ -537,7 +508,7 @@ def run_workflow(payload: dict, workflow_name: str) -> str:
         raise
 
 # Health check endpoint
-@app.get("/health", summary="Health check endpoint")
+@app.get("/api/health", summary="Health check endpoint")
 async def health_check():
     return {"status": "ok", "timestamp": time.time()}
 

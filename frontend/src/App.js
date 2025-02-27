@@ -6,11 +6,13 @@ import './App.css';
 const API_URL = '/api';
 
 function App() {
+  const [activeTab, setActiveTab] = useState('text2img'); // Mặc định hiển thị "Tạo ảnh từ văn bản"
   const [textPrompt, setTextPrompt] = useState('');
   const [sizeChoice, setSizeChoice] = useState('1024x768');
   const [customSize, setCustomSize] = useState('');
   const [productCodes, setProductCodes] = useState([]);
-  const [imageFile, setImageFile] = useState(null);
+  const [imageFile, setImageFile] = useState(null); // File ảnh upload
+  const [previewImage, setPreviewImage] = useState(null); // URL preview của ảnh upload
   const [position, setPosition] = useState('');
   const [generatedImage, setGeneratedImage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -28,10 +30,14 @@ function App() {
   ];
 
   const toggleProduct = (product) => {
-    if (productCodes.includes(product)) {
-      setProductCodes(productCodes.filter(code => code !== product));
+    if (activeTab === 'text2img') {
+      if (productCodes.includes(product)) {
+        setProductCodes(productCodes.filter(code => code !== product));
+      } else {
+        setProductCodes([...productCodes, product]);
+      }
     } else {
-      setProductCodes([...productCodes, product]);
+      setProductCodes([product]); // Chỉ cho phép chọn 1 sản phẩm cho img2img
     }
   };
 
@@ -52,7 +58,7 @@ function App() {
           product_codes: productCodes
         },
         {
-          headers: { 'Authorization': 'Bearer YOUR_API_KEY_HERE' },
+          headers: { 'Authorization': 'Bearer YOUR_API_KEY_HERE' }, // Thay bằng API key thực tế
           responseType: 'blob'
         }
       );
@@ -83,7 +89,7 @@ function App() {
         formData,
         {
           headers: {
-            'Authorization': 'Bearer YOUR_API_KEY_HERE',
+            'Authorization': 'Bearer YOUR_API_KEY_HERE', // Thay bằng API key thực tế
             'Content-Type': 'multipart/form-data'
           },
           responseType: 'blob'
@@ -101,6 +107,12 @@ function App() {
     <div className="loading-spinner"></div>
   );
 
+  const onDrop = (acceptedFiles) => {
+    const file = acceptedFiles[0];
+    setImageFile(file);
+    setPreviewImage(URL.createObjectURL(file)); // Hiển thị preview ngay lập tức
+  };
+
   return (
     <div className="App">
       <header className="header">
@@ -110,115 +122,137 @@ function App() {
         </div>
       </header>
 
-      {/* Text to Image Form */}
-      <div className="section">
-        <h2>Tạo ảnh từ văn bản</h2>
-        <form onSubmit={handleText2Img}>
-          <div>
-            <label>Mô tả (Prompt):</label>
-            <input
-              type="text"
-              value={textPrompt}
-              onChange={(e) => setTextPrompt(e.target.value)}
-              placeholder="Ví dụ: Bàn bếp hiện đại"
-              required
-            />
-          </div>
+      {/* Tabs để chọn giữa Text2Img và Img2Img */}
+      <div className="tabs">
+        <button
+          className={`tab-button ${activeTab === 'text2img' ? 'active' : ''}`}
+          onClick={() => setActiveTab('text2img')}
+        >
+          Tạo ảnh từ văn bản
+        </button>
+        <button
+          className={`tab-button ${activeTab === 'img2img' ? 'active' : ''}`}
+          onClick={() => setActiveTab('img2img')}
+        >
+          Chuyển đổi ảnh
+        </button>
+      </div>
 
-          <div>
-            <label>Kích thước:</label>
-            <select
-              value={sizeChoice}
-              onChange={(e) => setSizeChoice(e.target.value)}
-            >
-              <option value="1024x768">1024x768</option>
-              <option value="Custom size">Tùy chỉnh</option>
-            </select>
-            {sizeChoice === 'Custom size' && (
+      {/* Hiển thị form tương ứng với tab được chọn */}
+      {activeTab === 'text2img' && (
+        <div className="section">
+          <h2>Tạo ảnh từ văn bản</h2>
+          <form onSubmit={handleText2Img}>
+            <div>
+              <label>Mô tả (Prompt):</label>
               <input
                 type="text"
-                value={customSize}
-                onChange={(e) => setCustomSize(e.target.value)}
-                placeholder="Ví dụ: 1280x720"
+                value={textPrompt}
+                onChange={(e) => setTextPrompt(e.target.value)}
+                placeholder="Ví dụ: Bàn bếp hiện đại"
+                required
               />
-            )}
-          </div>
-
-          <div>
-            <label>Chọn sản phẩm:</label>
-            <div className="product-buttons">
-              {productOptions.map(product => (
-                <button
-                  key={product}
-                  type="button"
-                  className={`product-button ${productCodes.includes(product) ? 'selected' : ''}`}
-                  onClick={() => toggleProduct(product)}
-                >
-                  {product}
-                </button>
-              ))}
             </div>
-          </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? <LoadingSpinner /> : 'Tạo ảnh'}
-          </button>
-        </form>
-      </div>
-
-      {/* Image to Image Form */}
-      <div className="section">
-        <h2>Chuyển đổi ảnh</h2>
-        <form onSubmit={handleImg2Img}>
-          <Dropzone onDrop={acceptedFiles => setImageFile(acceptedFiles[0])}>
-            {({getRootProps, getInputProps}) => (
-              <section>
-                <div {...getRootProps()} className="dropzone">
-                  <input {...getInputProps()} />
-                  <p>{imageFile ? imageFile.name : 'Kéo thả ảnh vào đây hoặc nhấp để chọn ảnh'}</p>
-                </div>
-              </section>
-            )}
-          </Dropzone>
-
-          <div>
-            <label>Vị trí áp dụng texture:</label>
-            <input
-              type="text"
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-              placeholder="Ví dụ: countertop"
-              required
-            />
-          </div>
-
-          <div>
-            <label>Chọn sản phẩm:</label>
-            <div className="product-buttons">
-              {productOptions.map(product => (
-                <button
-                  key={product}
-                  type="button"
-                  className={`product-button ${productCodes.includes(product) ? 'selected' : ''}`}
-                  onClick={() => setProductCodes([product])}
-                >
-                  {product}
-                </button>
-              ))}
+            <div>
+              <label>Kích thước:</label>
+              <select
+                value={sizeChoice}
+                onChange={(e) => setSizeChoice(e.target.value)}
+              >
+                <option value="1024x768">1024x768</option>
+                <option value="Custom size">Tùy chỉnh</option>
+              </select>
+              {sizeChoice === 'Custom size' && (
+                <input
+                  type="text"
+                  value={customSize}
+                  onChange={(e) => setCustomSize(e.target.value)}
+                  placeholder="Ví dụ: 1280x720"
+                />
+              )}
             </div>
-          </div>
 
-          <button type="submit" disabled={loading}>
-            {loading ? <LoadingSpinner /> : 'Xử lý ảnh'}
-          </button>
-        </form>
-      </div>
+            <div>
+              <label>Chọn sản phẩm:</label>
+              <div className="product-buttons">
+                {productOptions.map(product => (
+                  <button
+                    key={product}
+                    type="button"
+                    className={`product-button ${productCodes.includes(product) ? 'selected' : ''}`}
+                    onClick={() => toggleProduct(product)}
+                  >
+                    {product}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading}>
+              {loading ? <LoadingSpinner /> : 'Tạo ảnh'}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {activeTab === 'img2img' && (
+        <div className="section">
+          <h2>Chuyển đổi ảnh</h2>
+          <form onSubmit={handleImg2Img}>
+            <Dropzone onDrop={onDrop}>
+              {({ getRootProps, getInputProps }) => (
+                <section>
+                  <div {...getRootProps()} className="dropzone">
+                    <input {...getInputProps()} />
+                    <p>{imageFile ? imageFile.name : 'Kéo thả ảnh vào đây hoặc nhấp để chọn ảnh'}</p>
+                    {previewImage && (
+                      <img src={previewImage} alt="Preview" className="preview-image" />
+                    )}
+                  </div>
+                </section>
+              )}
+            </Dropzone>
+
+            <div>
+              <label>Vị trí áp dụng texture:</label>
+              <input
+                type="text"
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+                placeholder="Ví dụ: countertop"
+                required
+              />
+            </div>
+
+            <div>
+              <label>Chọn sản phẩm:</label>
+              <div className="product-buttons">
+                {productOptions.map(product => (
+                  <button
+                    key={product}
+                    type="button"
+                    className={`product-button ${productCodes.includes(product) ? 'selected' : ''}`}
+                    onClick={() => setProductCodes([product])}
+                  >
+                    {product}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading}>
+              {loading ? <LoadingSpinner /> : 'Xử lý ảnh'}
+            </button>
+          </form>
+        </div>
+      )}
 
       {/* Display Generated Image */}
       {generatedImage && (
         <div className="section">
           <h2>Kết quả:</h2>
-          <img src={generatedImage} alt="Generated" />
+          <img src={generatedImage} alt="Generated" className="generated-image" />
           <a href={generatedImage} download="generated_image.png">Tải ảnh xuống</a>
         </div>
       )}
